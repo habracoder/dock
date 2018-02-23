@@ -1,0 +1,35 @@
+<dictionaries>
+    <dictionary>
+        <name>countries</name>
+        <source>
+            <mysql>
+                <port>3306</port>
+                <user>ma_fin</user>
+                <password>EQKVVq67CLjUpUxa</password>
+                <replica>
+                    <host>10.0.0.27</host>
+                    <priority>1</priority>
+                </replica>
+                <db>partners</db>
+                <table>maxmind_geoip_countries</table>
+            </mysql>
+        </source>
+
+        <lifetime>1</lifetime>
+
+        <layout>
+            <flat />
+        </layout>
+
+        <structure>
+            <id>
+                <name>id</name>
+            </id>
+            <attribute>
+                <name>name</name>
+                <type>String</type>
+                <null_value></null_value>
+            </attribute>
+        </structure>
+    </dictionary>
+</dictionaries>

@@ -20,8 +20,8 @@ services:
     ports:
       - 9092:9092
     environment:
+      # open kafka to external connections
       HOSTNAME_COMMAND: "route -n | awk '/UG[ \t]/{print $$2}'"
-#      KAFKA_ADVERTISED_HOST_NAME: 192.168.99.100
       KAFKA_CREATE_TOPICS: "autocounter:1:1"
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     volumes:
@@ -101,14 +101,6 @@ services:
     environment:
       VIRTUAL_HOST: develop.loc
     working_dir: /var/www/develop
-
-#  tabix:
-#    image: spoonest/clickhouse-tabix-web-client
-#    expose:
-#      - 80
-#    environment:
-#      VIRTUAL_HOST: local-tabix.com
-#    restart: always
 
   local-redis:
     container_name: local-redis
@@ -238,9 +230,6 @@ services:
 volumes:
   clickhouse-data:
     driver: local
-
-#  widget-images:
-#    driver: local
 
 networks:
   default:

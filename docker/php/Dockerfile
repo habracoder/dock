@@ -35,6 +35,7 @@ RUN pecl install redis-3.1.6 && docker-php-ext-enable redis
 RUN pecl install xdebug-2.5.0 && docker-php-ext-enable xdebug
 RUN pecl install imagick-3.4.3 && docker-php-ext-enable imagick
 RUN pecl install memcached-3.0.4 && docker-php-ext-enable memcached
+RUN pecl install mongodb-1.4.2 && docker-php-ext-enable mongodb
 
 RUN docker-php-ext-install gd && \
     docker-php-ext-install pdo && \

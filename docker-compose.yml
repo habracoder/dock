@@ -17,6 +17,8 @@ services:
   kafka:
     container_name: kafka
     image: wurstmeister/kafka
+    depends_on:
+      - zookeeper
     ports:
       - 9092:9092
     environment:
@@ -43,12 +45,16 @@ services:
     container_name: mongo
     ports:
       - 127.0.0.1:27017:27017
+    volumes:
+      - ./data/mongo/:/data/db
  
   php:
     build: ./docker/php
     container_name: php
     environment:
-      TIMEZONE: Europe/Paris
+      TIMEZONE: Europe/Kiev
+      XDEBUG_CONFIG: remote_host=192.168.4.89
+      APPLICATION_ENV: cli_development
     volumes:
       - ./docker/php/php.ini:/usr/local/etc/php/php.ini:ro
       - /private/www/adminer:/var/www/adminer:cached
@@ -61,13 +67,21 @@ services:
       - /private/www/develop:/var/www/develop:cached
       - /private/www/servicer:/var/www/servicer:cached
       - /private/www/images:/data/images:cached
+      - /private/www/repetitor:/var/www/repetitor:cached
+      - /private/www/marketgid/newsranker:/var/www/marketgid/newsranker:cached
+      - /private/www/cli:/var/www/marketgid/cli:cached
     working_dir: /var/www
+    restart: always
 
   tools:
     container_name: tools
     build: ./docker/perl
+    depends_on:
+      - mysql.intra.ru
     volumes:
       - /private/www/tools:/home/www/tools
+      - ./docker/perl/perl_cron.ini:/home/www/config/perl_cron.ini
+      - ./docker/perl/logs/:/home/logs/
     working_dir: /home/www/tools
     command: tail -f /dev/null
 
@@ -76,6 +90,8 @@ services:
     image: nginx:alpine
     depends_on:
       - nginx-proxy
+      - php
+    links:
       - php
     volumes:
       - ./docker/nginx/adminer.conf:/etc/nginx/conf.d/default.conf:ro
@@ -144,9 +160,9 @@ services:
     restart: always
     working_dir: /var/www/marketgid/dashboard
 
-  admin.marketgid.com:
-    container_name: admin-marketgid
-    image: nginx:1.11
+  admin.marketgid:
+    container_name: admin.marketgid
+    image: nginx:alpine
     depends_on:
       - php
       - nginx-proxy
@@ -167,7 +183,7 @@ services:
     depends_on:
       - php
       - nginx-proxy
-      - mysql.intra.ru
+      - mysql.intra.us
     volumes:
       - ./docker/nginx/idealmedia.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/transit:/var/www/marketgid/transit:ro
@@ -176,7 +192,42 @@ services:
       - 80
     environment:
       VIRTUAL_HOST: local.idealmedia.com
+      DB_HOST: mysql.intra.us
     working_dir: /var/www/marketgid/transit
+
+  local.lentainform:
+    container_name: local.lentainform
+    image: nginx:1.11
+    depends_on:
+      - php
+      - nginx-proxy
+      - mysql.intra.us
+    volumes:
+      - ./docker/nginx/lentainform.conf:/etc/nginx/conf.d/default.conf:ro
+      - /private/www/transit:/var/www/marketgid/transit:ro
+      - /private/www/cdn:/var/www/cdn:ro
+    expose:
+      - 80
+    environment:
+      VIRTUAL_HOST: local.lentainform.com
+      DB_HOST: mysql.intra.ru
+    working_dir: /var/www/marketgid/transit
+
+  newsranker.marketgid:
+    container_name: newsranker.marketgid
+    image: nginx:1.11
+    depends_on:
+      - php
+      - nginx-proxy
+      - mysql.intra.ru
+    volumes:
+      - ./docker/nginx/newsranker.marketgid.conf:/etc/nginx/conf.d/default.conf:ro
+      - /private/www/marketgid/newsranker:/var/www/marketgid/newsranker:ro
+    expose:
+      - 80
+    environment:
+      VIRTUAL_HOST: newsranker.lentainform.com
+    working_dir: /var/www/marketgid/newsranker
 
   servicer.marketgid.com:
     container_name: servicer.marketgid.com
@@ -194,6 +245,22 @@ services:
       VIRTUAL_HOST: servicer.local.marketgid.com
     working_dir: /var/www/servicer
 
+  repetitor:
+    container_name: repetitor
+    image: nginx:alpine
+    depends_on:
+      - php
+      - nginx-proxy
+      - mysql.intra
+    volumes:
+      - ./docker/nginx/api.repetitor.conf:/etc/nginx/conf.d/default.conf:ro
+      - /private/www/repetitor:/var/www/repetitor:ro
+    expose:
+      - 80
+    environment:
+      VIRTUAL_HOST: repetitor.com
+    working_dir: /var/www/repetitor
+
   jsc.marketgid.com:
     container_name: jsc.marketgid.com
     image: nginx:alpine
@@ -206,6 +273,19 @@ services:
       - 80
     environment:
       VIRTUAL_HOST: local-jsc.marketgid.com
+
+  cdn.lentainform:
+    container_name: cdn.lentainform
+    image: nginx:alpine
+    depends_on:
+      - nginx-proxy
+    volumes:
+      - ./docker/nginx/cdn.lentainform.conf:/etc/nginx/conf.d/default.conf:ro
+      - /private/www/cdn:/home/www/cdn:ro
+    expose:
+      - 80
+    environment:
+      VIRTUAL_HOST: local-cdn.lentainform.com
 
   mysql.intra.ru:
     container_name: mysql.intra.ru
@@ -225,6 +305,17 @@ services:
       MYSQL_ROOT_PASSWORD: password
     volumes:
       - ./data/mysql/us-mysql:/var/lib/mysql:cached
+      - ./data/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf:ro
+
+  mysql.intra:
+    container_name: mysql.intra
+    image: mysql:5.7
+    ports:
+      - 3300:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    volumes:
+      - ./data/mysql/mysql:/var/lib/mysql:cached
       - ./data/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf:ro
 
 volumes:

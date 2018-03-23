@@ -1,8 +1,2 @@
 # exclude ide configs
 .idea
-
-# exclude everything
-data/*
-
-# exception to the rule
-!data/.gitkeep

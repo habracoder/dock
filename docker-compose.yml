@@ -37,8 +37,8 @@ services:
       - 8123:8123
     volumes:
       - clickhouse-data:/var/lib/clickhouse/
-      - ./docker/clickhouse/clickhouse_dictionary.xml:/etc/clickhouse-server/clickhouse_dictionary.xml
-      - ./docker/clickhouse/config.xml:/etc/clickhouse-server/config.xml
+      - ./images/clickhouse/clickhouse_dictionary.xml:/etc/clickhouse-server/clickhouse_dictionary.xml
+      - ./images/clickhouse/config.xml:/etc/clickhouse-server/config.xml
 
   mongo:
     image: mongo:latest
@@ -49,14 +49,14 @@ services:
       - ./data/mongo/:/data/db
  
   php:
-    build: ./docker/php
+    build: ./images/php
     container_name: php
     environment:
       TIMEZONE: Europe/Kiev
       XDEBUG_CONFIG: remote_host=192.168.4.89
       APPLICATION_ENV: cli_development
     volumes:
-      - ./docker/php/php.ini:/usr/local/etc/php/php.ini:ro
+      - ./images/php/php.ini:/usr/local/etc/php/php.ini:ro
       - /private/www/adminer:/var/www/adminer:cached
       - /private/www/cab:/var/www/admin3/cab:cached
       - /private/www/library:/var/www/library:cached
@@ -75,13 +75,13 @@ services:
 
   tools:
     container_name: tools
-    build: ./docker/perl
+    build: ./images/perl
     depends_on:
       - mysql.intra.ru
     volumes:
       - /private/www/tools:/home/www/tools
-      - ./docker/perl/perl_cron.ini:/home/www/config/perl_cron.ini
-      - ./docker/perl/logs/:/home/logs/
+      - ./images/perl/perl_cron.ini:/home/www/config/perl_cron.ini
+      - ./data/perl/logs:/home/logs
     working_dir: /home/www/tools
     command: tail -f /dev/null
 
@@ -94,7 +94,7 @@ services:
     links:
       - php
     volumes:
-      - ./docker/nginx/adminer.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./images/nginx/adminer.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/adminer:/var/www/adminer:ro
     expose:
       - 80
@@ -110,7 +110,7 @@ services:
       - nginx-proxy
       - php
     volumes:
-      - ./docker/nginx/develop.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./images/nginx/develop.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/develop:/var/www/develop:ro
     expose:
       - 80
@@ -130,7 +130,7 @@ services:
       - nginx-proxy
       - mysql.intra.ru
     volumes:
-      - ./docker/nginx/dashboard.marketgid.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./images/nginx/dashboard.marketgid.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/library/marketgid:/var/www/library:ro
       - /private/www/dashboard:/var/www/marketgid/dashboard:ro
     expose:
@@ -149,7 +149,7 @@ services:
       - nginx-proxy
       - mysql.intra.ru
     volumes:
-      - ./docker/nginx/dashboard.mgid.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./images/nginx/dashboard.mgid.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/library/marketgid:/var/www/library:ro
       - /private/www/dashboard:/var/www/marketgid/dashboard:ro
     expose:
@@ -168,7 +168,7 @@ services:
       - nginx-proxy
       - mysql.intra.ru
     volumes:
-      - ./docker/nginx/admin.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./images/nginx/admin.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/library/marketgid:/var/www/library:ro
       - /private/www/cab:/var/www/admin3/cab:ro
     expose:
@@ -185,7 +185,7 @@ services:
       - nginx-proxy
       - mysql.intra.us
     volumes:
-      - ./docker/nginx/idealmedia.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./images/nginx/idealmedia.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/transit:/var/www/marketgid/transit:ro
       - /private/www/cdn:/var/www/cdn:ro
     expose:
@@ -203,7 +203,7 @@ services:
       - nginx-proxy
       - mysql.intra.us
     volumes:
-      - ./docker/nginx/lentainform.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./images/nginx/lentainform.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/transit:/var/www/marketgid/transit:ro
       - /private/www/cdn:/var/www/cdn:ro
     expose:
@@ -221,7 +221,7 @@ services:
       - nginx-proxy
       - mysql.intra.ru
     volumes:
-      - ./docker/nginx/newsranker.marketgid.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./images/nginx/newsranker.marketgid.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/marketgid/newsranker:/var/www/marketgid/newsranker:ro
     expose:
       - 80
@@ -237,7 +237,7 @@ services:
       - nginx-proxy
       - mysql.intra.ru
     volumes:
-      - ./docker/nginx/servicer.marketgid.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./images/nginx/servicer.marketgid.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/servicer:/var/www/servicer:ro
     expose:
       - 80
@@ -253,7 +253,7 @@ services:
       - nginx-proxy
       - mysql.intra
     volumes:
-      - ./docker/nginx/api.repetitor.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./images/nginx/api.repetitor.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/repetitor:/var/www/repetitor:ro
     expose:
       - 80
@@ -267,7 +267,7 @@ services:
     depends_on:
       - nginx-proxy
     volumes:
-      - ./docker/nginx/jsc.marketgid.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./images/nginx/jsc.marketgid.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/images:/data/images:ro
     expose:
       - 80
@@ -280,7 +280,7 @@ services:
     depends_on:
       - nginx-proxy
     volumes:
-      - ./docker/nginx/cdn.lentainform.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./images/nginx/cdn.lentainform.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/cdn:/home/www/cdn:ro
     expose:
       - 80
@@ -296,7 +296,7 @@ services:
       - 3306:3306
     volumes:
       - ./data/mysql/ru-mysql:/var/lib/mysql:cached
-      - ./data/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf:ro
+      - ./images/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf:ro
 
   mysql.intra.us:
     container_name: mysql.intra.us
@@ -305,7 +305,7 @@ services:
       MYSQL_ROOT_PASSWORD: password
     volumes:
       - ./data/mysql/us-mysql:/var/lib/mysql:cached
-      - ./data/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf:ro
+      - ./images/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf:ro
 
   mysql.intra:
     container_name: mysql.intra
@@ -316,8 +316,18 @@ services:
       MYSQL_ROOT_PASSWORD: password
     volumes:
       - ./data/mysql/mysql:/var/lib/mysql:cached
-      - ./data/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf:ro
+      - ./images/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf:ro
 
+  mysql.test:
+    container_name: mysql.intra
+    image: mysql:5.7
+    ports:
+      - 3301:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    volumes:
+      - ./data/test:/var/lib/mysql:cached
+      - ./images/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf:ro
 volumes:
   clickhouse-data:
     driver: local

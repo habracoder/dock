@@ -3,10 +3,6 @@ FROM php:7.1-fpm
 ENV PHP_VERSION 7.1
 ENV PHPREDIS_VERSION 3.1.4
 
-## Install recommended extensions for Symfony
-#RUN apt-get update && apt-get install -y \
-#    libicu-dev
-
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libxml2-dev \
     python \
@@ -19,7 +15,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     pkg-config \
     libmagickwand-dev \
-    libmemcached-dev
+    libmemcached-dev \
+    zip \
+    unzip \
+    libicu-dev
 
 # Kafka installation
 RUN git clone https://github.com/edenhill/librdkafka.git /tmp/librdkafka \
@@ -41,10 +40,11 @@ RUN docker-php-ext-install gd && \
     docker-php-ext-install pdo && \
     docker-php-ext-install soap && \
     docker-php-ext-install iconv && \
+    docker-php-ext-install bcmath && \
     docker-php-ext-install mcrypt && \
     docker-php-ext-install opcache && \
-    docker-php-ext-install pdo_mysql
-
+    docker-php-ext-install pdo_mysql && \
+    docker-php-ext-install intl
 
 ENV PHALCON_VERSION=3.2.4
 

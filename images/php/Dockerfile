@@ -18,7 +18,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libmemcached-dev \
     zip \
     unzip \
-    libicu-dev
+    libicu-dev \
+    autoconf \
+    build-essential \
+    libssl-dev \
+    gnupg2 \
+    dirmngr
+
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
+RUN echo "deb http://repo.mongodb.org/apt/debian stretch/mongodb-org/3.6 main" | tee /etc/apt/sources.list.d/mongodb-org-3.6.list
+RUN apt-get update && apt-get install -y --no-install-recommends mongodb-org-tools
+
+RUN curl --silent --show-error https://getcomposer.org/installer | php
+
+#RUN mkdir /tmp/aerospike-client-php/ \
+#    && cd /tmp/aerospike-client-php \
+#    && composer require aerospike/aerospike-client-php 7.1.1 \
+#    && find vendor/aerospike/aerospike-client-php -name "*.sh" -exec chmod +x {} \; \
+#    && cd vendor/aerospike/aerospike-client-php/ \
+#    && composer run-script post-install-cmd \
+#    && cd src \
+#    && make install \
+#    && docker-php-ext-enable aerospike.so \
+#    && rm -R /tmp/aerospike-client-php/
 
 # Kafka installation
 RUN git clone https://github.com/edenhill/librdkafka.git /tmp/librdkafka \
@@ -36,15 +58,16 @@ RUN pecl install imagick-3.4.3 && docker-php-ext-enable imagick
 RUN pecl install memcached-3.0.4 && docker-php-ext-enable memcached
 RUN pecl install mongodb-1.4.2 && docker-php-ext-enable mongodb
 
-RUN docker-php-ext-install gd && \
-    docker-php-ext-install pdo && \
-    docker-php-ext-install soap && \
-    docker-php-ext-install iconv && \
-    docker-php-ext-install bcmath && \
-    docker-php-ext-install mcrypt && \
-    docker-php-ext-install opcache && \
-    docker-php-ext-install pdo_mysql && \
-    docker-php-ext-install intl
+RUN docker-php-ext-install gd
+RUN docker-php-ext-install pdo
+RUN docker-php-ext-install soap
+RUN docker-php-ext-install iconv
+RUN docker-php-ext-install bcmath
+RUN docker-php-ext-install mcrypt
+RUN docker-php-ext-install opcache
+RUN docker-php-ext-install pdo_mysql
+RUN docker-php-ext-install intl
+RUN docker-php-ext-install sockets
 
 ENV PHALCON_VERSION=3.2.4
 

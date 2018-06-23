@@ -1,10 +1,10 @@
 version: '3'
 services:
   nginx-proxy:
-    image: jwilder/nginx-proxy
+    build: ./images/proxy
     container_name: nginx-proxy
     ports:
-      - '80:80'
+      - 80:80
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
 
@@ -38,27 +38,13 @@ services:
     depends_on:
       - zookeeper
     ports:
-      - 9094:9094
-#      - target: 9094
-#        published: 9094
-#        protocol: tcp
-#        mode: host
+      - 9092:9092
     environment:
-      # open kafka to external connections
       HOSTNAME_COMMAND: "route -n | awk '/UG[ \t]/{print $$2}'"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_CREATE_TOPICS: "autocounter:1:1"
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-
-#      HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
-      KAFKA_ADVERTISED_PROTOCOL_NAME: OUTSIDE
-      KAFKA_ADVERTISED_PORT: 9094
-      KAFKA_PROTOCOL_NAME: INSIDE
-      KAFKA_PORT: 9092
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-
 
   templates:
     image: portainer/templates
@@ -69,7 +55,6 @@ services:
   portainer:
     container_name: portainer
     image: portainer/portainer
-#    command: --templates http://templates/templates.json
     ports:
       - 9000:9000
     volumes:
@@ -88,6 +73,10 @@ services:
       - ./images/clickhouse/config.xml:/etc/clickhouse-server/config.xml
       - ./clickhouse/timezone_config.xml:/etc/clickhouse-server/config.d/timezone_config.xml
 
+  clickhouse.client:
+    container_name: clickhouse.client
+    image: yandex/clickhouse-client
+
   mongo:
     image: mongo:latest
     container_name: mongo
@@ -101,12 +90,14 @@ services:
     container_name: php
     environment:
       TIMEZONE: Europe/Kiev
-      XDEBUG_CONFIG: remote_host=192.168.4.89
+      XDEBUG_CONFIG: remote_host=192.168.4.135
       APPLICATION_ENV: cli_development
     volumes:
       - ./images/php/php.ini:/usr/local/etc/php/php.ini:ro
       - /private/www/adminer:/var/www/adminer:cached
       - /private/www/cab:/var/www/admin3/cab:cached
+      - /private/www/antifraud:/var/www/admin3/antifraud:cached
+      - /private/www/other/globalTemplates:/var/www/admin3/globalTemplates:cached
       - /private/www/library:/var/www/library:cached
       - /private/www/dashboard:/var/www/marketgid/dashboard:cached
       - /private/www/transit:/var/www/marketgid/transit:cached
@@ -114,12 +105,25 @@ services:
       - /private/www/logs/transit:/home/logs:cached
       - /private/www/develop:/var/www/develop:cached
       - /private/www/servicer:/var/www/servicer:cached
+      - /private/www/mg-kafka:/var/www/mg-kafka:cached
       - /private/www/images:/data/images:cached
       - /private/www/repetitor:/var/www/repetitor:cached
       - /private/www/marketgid/newsranker:/var/www/marketgid/newsranker:cached
       - /private/www/cli:/var/www/marketgid/cli:cached
+      - /private/www/api:/var/www/marketgid/api:cached
+      - /private/www/marketgid/databases:/var/www/marketgid/databases:cached
+      - /private/www/clickhouse-builder:/var/www/clickhouse-builder:cached
     working_dir: /var/www
     restart: always
+
+  aerospike:
+    container_name: aerospike
+    image: aerospike:latest
+    ports:
+      - 3000:3000
+#      - 3001:3001
+#      - 3002:3002
+#      - 3003:3003
 
   tools:
     container_name: tools
@@ -166,8 +170,8 @@ services:
       VIRTUAL_HOST: develop.loc
     working_dir: /var/www/develop
 
-  local-redis:
-    container_name: local-redis
+  redis:
+    container_name: redis
     image: redis:alpine
 
   dashboard.marketgid:
@@ -177,7 +181,7 @@ services:
       - php
       - nginx-proxy
       - mysql.intra.ru
-      - local-redis
+      - redis
     volumes:
       - ./images/nginx/dashboard.marketgid.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/library/marketgid:/var/www/library:ro
@@ -197,7 +201,7 @@ services:
       - php
       - nginx-proxy
       - mysql.intra.ru
-      - local-redis
+      - redis
     volumes:
       - ./images/nginx/dashboard.mgid.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/library/marketgid:/var/www/library:ro
@@ -220,6 +224,7 @@ services:
     volumes:
       - ./images/nginx/admin.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/cab:/var/www/admin3/cab:ro
+      - /private/www/antifraud:/var/www/admin3/antifraud:ro
       - /private/www/other/public:/var/www/admin3/public:ro
     expose:
       - 80
@@ -244,6 +249,22 @@ services:
       VIRTUAL_HOST: xi-admin.mgid.com
     working_dir: /var/www/admin3/cab
 
+  api.mgid:
+    container_name: api.mgid
+    image: nginx:alpine
+    depends_on:
+      - php
+      - nginx-proxy
+      - mysql.intra.us
+    volumes:
+      - ./images/nginx/api.conf:/etc/nginx/conf.d/default.conf:ro
+      - /private/www/api:/var/www/marketgid/api:ro
+    expose:
+      - 80
+    environment:
+      VIRTUAL_HOST: xi-api.mgid.com
+    working_dir: /var/www/marketgid/api
+
   transit.idealmedia:
     container_name: transit.idealmedia
     image: nginx:latest
@@ -251,7 +272,7 @@ services:
       - php
       - nginx-proxy
       - mysql.intra.us
-      - cdn.lentainform
+      - cdn
     volumes:
       - ./images/nginx/idealmedia.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/transit:/var/www/marketgid/transit:ro
@@ -270,7 +291,7 @@ services:
       - php
       - nginx-proxy
       - mysql.intra.ru
-      - cdn.lentainform
+      - cdn
     volumes:
       - ./images/nginx/lentainform.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/transit:/var/www/marketgid/transit:ro
@@ -289,14 +310,14 @@ services:
       - php
       - nginx-proxy
       - mysql.intra.ru
-      - cdn.lentainform
+      - cdn
     volumes:
       - ./images/nginx/lentainform.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/transit:/var/www/marketgid/transit:ro
     expose:
       - 80
     environment:
-      VIRTUAL_HOST: local.marketgid.com
+      VIRTUAL_HOST: local.marketgid.com,local.marketgid.ru
       DB_HOST: mysql.intra.ru
     working_dir: /var/www/marketgid/transit
 
@@ -342,6 +363,22 @@ services:
       VIRTUAL_HOST: servicer.local.marketgid.com
     working_dir: /var/www/servicer
 
+  mg.kafka:
+    container_name: mg.kafka
+    image: nginx:latest
+    depends_on:
+      - php
+      - nginx-proxy
+      - kafka
+    volumes:
+      - ./images/nginx/mg-kafka.conf:/etc/nginx/conf.d/default.conf:ro
+      - /private/www/mg-kafka:/var/www/mg-kafka:ro
+    expose:
+      - 80
+    environment:
+      VIRTUAL_HOST: mg-kafka.com
+    working_dir: /var/www/mg-kafka
+
   repetitor:
     container_name: repetitor
     image: nginx:alpine
@@ -371,18 +408,18 @@ services:
     environment:
       VIRTUAL_HOST: local-jsc.marketgid.com
 
-  cdn.lentainform:
-    container_name: cdn.lentainform
+  cdn:
+    container_name: cdn
     image: nginx:alpine
     depends_on:
       - nginx-proxy
     volumes:
-      - ./images/nginx/cdn.lentainform.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./images/nginx/cdn.conf:/etc/nginx/conf.d/default.conf:ro
       - /private/www/cdn:/home/www/cdn:ro
     expose:
       - 80
     environment:
-      VIRTUAL_HOST: local-cdn.lentainform.com
+      VIRTUAL_HOST: local-cdn.marketgid.com,local-cdn.lentainform.com
 
   mysql.intra.ru:
     container_name: mysql.intra.ru

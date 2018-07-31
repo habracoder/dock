@@ -11,7 +11,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libmcrypt-dev \
     libpng-dev \
     libfontconfig1-dev \
-    libfreetype6-dev \
     git \
     pkg-config \
     libmagickwand-dev \

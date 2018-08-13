@@ -71,29 +71,6 @@ RUN docker-php-ext-enable \
     rdkafka \
     aerospike
 
-#
-#RUN apk update && \
-#    apk upgrade && \
-#    apk add \
-
-#     \
-#    libfreetype6-dev \
-#    libjpeg62-turbo-dev \
-
-#    libfontconfig1-dev \
-#    git \
-#    pkg-config \
-
-
-#    build-essential \
-#    libssl-dev \
-#    gnupg2 \
-#    dirmngr
-#
-#RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
-#RUN echo "deb http://repo.mongodb.org/apt/debian stretch/mongodb-org/3.6 main" | tee /etc/apt/sources.list.d/mongodb-org-3.6.list
-#RUN apt-get update && apt-get install -y --no-install-recommends mongodb-org-tools
-
 # Allow Composer to be run as root
 ENV COMPOSER_ALLOW_SUPERUSER 1
 # Setup the Composer installer

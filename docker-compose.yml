@@ -117,9 +117,9 @@ services:
       - memcached
     environment:
       TIMEZONE: Europe/Kiev
-      XDEBUG_CONFIG: remote_host=192.168.4.135
-#      XDEBUG_CONFIG: remote_host=192.168.0.103
-#      XDEBUG_CONFIG: remote_host=192.168.43.191
+      # Only for mac https://docs.docker.com/docker-for-mac/networking/#use-cases-and-workarounds
+      # For another device, use: `ifconfig en0 | awk '/ *inet /{print $2}'`
+      XDEBUG_CONFIG: remote_host=docker.for.mac.host.internal
       APPLICATION_ENV: cli_development
     volumes:
       - php-logs:/home/www/logs/php
@@ -352,22 +352,6 @@ services:
       VIRTUAL_HOST: local.lentainform.com,local.marketgid.com,local.marketgid.ru
       DB_HOST: mysql.intra.ru
     working_dir: /var/www/marketgid/transit
-
-  music.api:
-    image: nginx:latest
-    depends_on:
-      - php
-      - proxy
-      - mysql.intra
-    volumes:
-      - ./images/nginx/api.music.conf:/etc/nginx/conf.d/default.conf:ro
-      - /private/www/music-rest:/var/www/api.music:ro
-    expose:
-      - 80
-    environment:
-      VIRTUAL_HOST: api.music.loc
-      DB_HOST: mysql.intra
-    working_dir: /var/www/api.music
 
   newsranker.marketgid:
     container_name: newsranker.marketgid

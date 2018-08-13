@@ -124,14 +124,13 @@ services:
     volumes:
       - php-logs:/home/www/logs/php
       - ./images/php/php.ini:/usr/local/etc/php/php.ini:ro
-      - /private/www/adminer:/var/www/adminer:cached
-      - /private/www/cab:/var/www/admin3/cab:cached
+      - ${PROJECT_PATH_CAB}:/var/www/admin3/cab:cached
       - /private/www/antifraud:/var/www/admin3/antifraud:cached
       - /private/www/informers:/var/www/admin3/informers:cached
       - /private/www/other/globalTemplates:/var/www/admin3/globalTemplates:cached
-      - /private/www/library:/var/www/library:cached
-      - /private/www/dashboard:/var/www/marketgid/dashboard:cached
-      - /private/www/transit:/var/www/marketgid/transit:cached
+      - ${PROJECT_PATH_LIBRARY}:/var/www/library:cached
+      - ${PROJECT_PATH_DASH}:/var/www/marketgid/dashboard:cached
+      - ${PROJECT_PATH_TRANSIT}:/var/www/marketgid/transit:cached
       - /private/www/logs:/var/www/logs:cached
       - /private/www/logs/transit:/home/logs:cached
       - /private/www/develop:/var/www/develop:cached
@@ -217,8 +216,7 @@ services:
       - redis
     volumes:
       - ./images/nginx/dashboard.marketgid.conf:/etc/nginx/conf.d/default.conf:ro
-      - /private/www/library/marketgid:/var/www/library:ro
-      - /private/www/dashboard:/var/www/marketgid/dashboard:ro
+      - ${PROJECT_PATH_DASH}:/var/www/marketgid/dashboard:ro
       - /private/www/images:/data/images:ro
     expose:
       - 80
@@ -236,8 +234,7 @@ services:
       - redis
     volumes:
       - ./images/nginx/dashboard.mgid.conf:/etc/nginx/conf.d/default.conf:ro
-      - /private/www/library/marketgid:/var/www/library:ro
-      - /private/www/dashboard:/var/www/marketgid/dashboard:ro
+      - ${PROJECT_PATH_DASH}:/var/www/marketgid/dashboard:ro
       - /private/www/images:/data/images:ro
     expose:
       - 80
@@ -254,7 +251,7 @@ services:
       - mysql.intra.ru
     volumes:
       - ./images/nginx/admin.conf:/etc/nginx/conf.d/default.conf:ro
-      - /private/www/cab:/var/www/admin3/cab:ro
+      - ${PROJECT_PATH_CAB}:/var/www/admin3/cab:ro
       - /private/www/antifraud:/var/www/admin3/antifraud:ro
       - /private/www/other/public:/var/www/admin3/public:ro
       - /private/www/images:/data/images:ro
@@ -273,7 +270,7 @@ services:
       - mysql.intra.us
     volumes:
       - ./images/nginx/admin.conf:/etc/nginx/conf.d/default.conf:ro
-      - /private/www/cab:/var/www/admin3/cab:ro
+      - ${PROJECT_PATH_CAB}:/var/www/admin3/cab:ro
       - /private/www/other/public:/var/www/admin3/public:ro
       - /private/www/images:/data/images:ro
     expose:
@@ -325,7 +322,7 @@ services:
       - redis
     volumes:
       - ./images/nginx/idealmedia.conf:/etc/nginx/conf.d/default.conf:ro
-      - /private/www/transit:/var/www/marketgid/transit:ro
+      - ${PROJECT_PATH_TRANSIT}:/var/www/marketgid/transit:ro
       - /private/www/cdn:/var/www/cdn:ro
     expose:
       - 80
@@ -344,7 +341,7 @@ services:
       - redis
     volumes:
       - ./images/nginx/lentainform.conf:/etc/nginx/conf.d/default.conf:ro
-      - /private/www/transit:/var/www/marketgid/transit:ro
+      - ${PROJECT_PATH_TRANSIT}:/var/www/marketgid/transit:ro
       - /private/www/cdn:/var/www/cdn:ro
     expose:
       - 80

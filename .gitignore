@@ -1,2 +1,4 @@
 # exclude ide configs
 .idea
+.DS_Store
+.env

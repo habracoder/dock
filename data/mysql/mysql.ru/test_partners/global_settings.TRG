@@ -1,8 +1,0 @@
-TYPE=TRIGGERS
-triggers='CREATE DEFINER=`root`@`localhost` TRIGGER test_partners.tr_BI_global_settings\nBEFORE INSERT\nON test_partners.global_settings\nFOR EACH ROW\nBEGIN\n  SET NEW.who_change = USER();\n  INSERT INTO `test_partners_changes`.`global_settings_changes`\n  SET `action` = \'insert\',\n      `namespace` = NEW.`namespace`,\n      `key` = NEW.`key`,\n      `value` = NEW.`value`,\n      `when_change` = NOW(),\n      `who_change` = USER();\n\nEND' 'CREATE DEFINER=`root`@`localhost` TRIGGER test_partners.tr_BU_global_settings\nBEFORE UPDATE\nON test_partners.global_settings\nFOR EACH ROW\nBEGIN\n  SET NEW.who_change = USER();\n  INSERT INTO `test_partners_changes`.`global_settings_changes`\n  SET `action` = \'update\',\n  	  `namespace` = NEW.`namespace`,\n      `key` = NEW.`key`,\n      `value` = NEW.`value`,\n      `when_change` = NOW(),\n      `who_change` = USER();\n\nEND' 'CREATE DEFINER=`root`@`localhost` TRIGGER test_partners.tr_BD_global_settings\nBEFORE DELETE\nON test_partners.global_settings\nFOR EACH ROW\nBEGIN\n\n  INSERT INTO `test_partners_changes`.`global_settings_changes`\n  SET `action` = \'delete\',\n      `namespace` = OLD.`namespace`,\n      `key` = OLD.`key`,\n      `value` = OLD.`value`,\n      `when_change` = NOW(),\n      `who_change` = USER();\n\nEND'
-sql_modes=1342177280 1342177280 1342177280
-definers='root@localhost' 'root@localhost' 'root@localhost'
-client_cs_names='utf8' 'utf8' 'utf8'
-connection_cl_names='utf8_general_ci' 'utf8_general_ci' 'utf8_general_ci'
-db_cl_names='utf8_general_ci' 'utf8_general_ci' 'utf8_general_ci'
-created=153375877631 153375877632 153375877633

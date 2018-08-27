@@ -1,4 +1,4 @@
-version: '3.7'
+version: '3.5'
 
 services:
   proxy:
@@ -280,7 +280,6 @@ services:
     working_dir: /var/www/admin3/cab
 
   api.us:
-    container_name: api.us
     image: nginx:alpine
     depends_on:
       - php
@@ -296,7 +295,6 @@ services:
     working_dir: /var/www/marketgid/api
 
   api.ru:
-    container_name: api.us
     image: nginx:alpine
     depends_on:
       - php
@@ -427,8 +425,6 @@ services:
   mysql.intra.ru:
     container_name: mysql.intra.ru
     image: mysql:5.7
-    depends_on:
-      - adminer
     environment:
       MYSQL_ROOT_PASSWORD: password
     ports:
@@ -440,8 +436,6 @@ services:
   mysql.intra.us:
     container_name: mysql.intra.us
     image: mysql:5.7
-    depends_on:
-      - adminer
     environment:
       MYSQL_ROOT_PASSWORD: password
     volumes:
@@ -451,8 +445,6 @@ services:
   mysql.intra:
     container_name: mysql.intra
     image: mysql:5.7
-    depends_on:
-      - adminer
     ports:
       - 3300:3306
     environment:

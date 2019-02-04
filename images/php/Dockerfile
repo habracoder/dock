@@ -17,10 +17,12 @@ RUN apk update && apk upgrade && apk add \
     autoconf \
     libmemcached-dev \
     imagemagick-dev \
+    imagemagick \
     linux-headers \
     cmake \
     openssl \
-    openssl-dev
+    openssl-dev \
+    re2c
 
 # Kafka installation
 RUN git clone https://github.com/edenhill/librdkafka.git /tmp/librdkafka \
@@ -38,6 +40,7 @@ RUN docker-php-ext-install \
     pdo \
     intl \
     soap \
+    pcntl \
     iconv \
     bcmath \
     sockets \
@@ -96,3 +99,6 @@ RUN usermod -u 1000 www-data
 
 ADD ./certs/* /etc/ssl/certs/
 RUN update-ca-certificates
+
+RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing gnu-libiconv
+ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php

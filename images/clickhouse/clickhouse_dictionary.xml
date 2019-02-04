@@ -1,32 +1,37 @@
 <dictionaries>
+
     <dictionary>
-        <name>countries</name>
+        <name>source_names</name>
         <source>
-            <mysql>
-                <port>3306</port>
-                <user>ma_fin</user>
-                <password>EQKVVq67CLjUpUxa</password>
-                <replica>
-                    <host>10.0.0.27</host>
-                    <priority>1</priority>
-                </replica>
-                <db>partners</db>
-                <table>maxmind_geoip_countries</table>
-            </mysql>
+            <clickhouse>
+                <host>localhost</host>
+                <port>9000</port>
+                <user>default</user>
+                <password>123</password>
+                <db>statistics</db>
+                <table>source_names_view</table>
+            </clickhouse>
         </source>
 
         <lifetime>1</lifetime>
 
         <layout>
-            <flat />
+            <complex_key_hashed />
         </layout>
 
         <structure>
-            <id>
-                <name>id</name>
-            </id>
+            <key>
+                <attribute>
+                    <name>composite</name>
+                    <type>UInt32</type>
+                </attribute>
+                <attribute>
+                    <name>subid</name>
+                    <type>UInt32</type>
+                </attribute>
+            </key>
             <attribute>
-                <name>name</name>
+                <name>name_source</name>
                 <type>String</type>
                 <null_value></null_value>
             </attribute>

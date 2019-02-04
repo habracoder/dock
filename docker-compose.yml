@@ -22,8 +22,7 @@ services:
           - xi-api.marketgid.com
           - xi-api.mgid.com
 
-  kafka.webview:
-    container_name: kafka.webview
+  kafka-webview:
     image: sourcelaborg/kafka-webview:latest
     depends_on:
       - proxy
@@ -45,8 +44,7 @@ services:
       - 2181:2181
 
   go:
-    container_name: go
-    image: golang:alpine
+    build: ./images/golang
     volumes:
       - /private/go/src/stat:/usr/src/stat
     working_dir: /usr/src/stat
@@ -69,8 +67,6 @@ services:
   templates:
     image: portainer/templates
     container_name: "portainer-templates"
-    networks:
-      - local
 
   portainer:
     container_name: portainer
@@ -95,6 +91,7 @@ services:
     volumes:
       - ./data/clickhouse:/var/lib/clickhouse
       - ./images/clickhouse/clickhouse_dictionary.xml:/etc/clickhouse-server/clickhouse_dictionary.xml
+      - ./images/clickhouse/users.xml:/etc/clickhouse-server/users.xml
       - ./images/clickhouse/config.xml:/etc/clickhouse-server/config.xml
       - ./clickhouse/timezone_config.xml:/etc/clickhouse-server/config.d/timezone_config.xml
 
@@ -134,15 +131,22 @@ services:
       - /private/www/logs:/var/www/logs:cached
       - /private/www/logs/transit:/home/logs:cached
       - /private/www/develop:/var/www/develop:cached
+      - /private/www/discus:/var/www/discus:cached
       - /private/www/servicer:/var/www/servicer:cached
       - /private/www/mg-kafka:/var/www/mg-kafka:cached
       - /private/www/images:/data/images:cached
       - /private/www/marketgid/newsranker:/var/www/marketgid/newsranker:cached
       - /private/www/cli:/var/www/marketgid/cli:cached
       - /private/www/api:/var/www/marketgid/api:cached
+
+      - /private/vue/eng:/var/www/eng:cached
+      - /private/vue/eng/var:/var/www/eng/var:delegated
+
       - /private/www/marketgid/databases:/var/www/marketgid/databases:cached
       - /private/www/clickhouse-builder:/var/www/clickhouse-builder:cached
       - /private/www/music-rest:/var/www/api.music:cached
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /private/www/cron-galaxy:/home/www/cron:cached
     working_dir: /var/www
 
   memcached:
@@ -203,6 +207,21 @@ services:
       VIRTUAL_HOST: develop.loc
     working_dir: /var/www/develop
 
+  discus:
+    container_name: discus
+    image: nginx:alpine
+    depends_on:
+      - proxy
+      - php
+    volumes:
+      - ./images/nginx/discus.conf:/etc/nginx/conf.d/default.conf:ro
+      - /private/www/discus:/var/www/discus:ro
+    expose:
+      - 80
+    environment:
+      VIRTUAL_HOST: discus.loc
+    working_dir: /var/www/discus
+
   redis:
     container_name: redis
     image: redis:alpine
@@ -216,14 +235,22 @@ services:
       - redis
     volumes:
       - ./images/nginx/dashboard.marketgid.conf:/etc/nginx/conf.d/default.conf:ro
-      - ${PROJECT_PATH_DASH}:/var/www/marketgid/dashboard:ro
-      - /private/www/images:/data/images:ro
+      - ${PROJECT_PATH_DASH}:/var/www/marketgid/dashboard:cached
+      - /private/www/images:/data/images:cached
+      - /private/www/library/Ad/Service/Widget/View/templates/styles:/var/www/marketgid/dashboard/public/styles/widgets:cached
     expose:
       - 80
     environment:
       VIRTUAL_HOST: xi-dashboard.marketgid.com,xi-dashboard.tovarro.com,xi-dashboard.lentainform.com
       DB_HOST: mysql.intra.ru
     working_dir: /var/www/marketgid/dashboard
+
+  clickhouse.test:
+    image: registry.mgid.com/marketgid/databases_clickhouse
+    hostname: clickhouse.test
+    restart: on-failure
+    ports:
+      - 7123:8123
 
   dash.us:
     image: nginx:1.11
@@ -294,6 +321,49 @@ services:
       VIRTUAL_HOST: xi-api.mgid.com
     working_dir: /var/www/marketgid/api
 
+  eng:
+    image: nginx:alpine
+    depends_on:
+    - proxy
+    volumes:
+    - ./images/nginx/eng.conf:/etc/nginx/conf.d/default.conf:ro
+    - /private/vue/eng/dist:/app:ro
+    expose:
+    - 80
+    environment:
+      VIRTUAL_HOST: eng.loc
+    working_dir: /app
+
+  api.eng:
+    image: nginx:alpine
+    depends_on:
+      - php
+      - proxy
+      - mysql.intra
+    volumes:
+      - ./images/nginx/api.eng.conf:/etc/nginx/conf.d/default.conf:ro
+      - /private/vue/eng:/var/www/eng:ro
+    expose:
+      - 80
+    environment:
+      VIRTUAL_HOST: api.eng.loc
+    working_dir: /var/www/eng
+
+  prod-eng:
+    image: nginx:alpine
+    depends_on:
+      - php
+      - proxy
+      - mysql.intra
+    volumes:
+      - ./images/nginx/prod-eng.conf:/etc/nginx/conf.d/default.conf:ro
+      - /private/vue/eng:/var/www/eng:ro
+    expose:
+      - 80
+    environment:
+      VIRTUAL_HOST: prod-eng.loc
+    working_dir: /var/www/eng
+
   api.ru:
     image: nginx:alpine
     depends_on:
@@ -308,6 +378,20 @@ services:
     environment:
       VIRTUAL_HOST: xi-api.marketgid.com
     working_dir: /var/www/marketgid/api
+
+  api.cron.vh:
+    image: nginx:alpine
+    depends_on:
+      - php
+      - proxy
+    volumes:
+      - ./images/nginx/api.cron.conf:/etc/nginx/conf.d/default.conf:ro
+      - /private/www/cron-galaxy:/home/www/cron:ro
+    expose:
+      - 80
+    environment:
+      VIRTUAL_HOST: api.cron.vh
+    working_dir: /home/www/cron
 
   transit.us:
     container_name: transit.us
@@ -442,6 +526,16 @@ services:
       - ./data/mysql/us-mysql:/var/lib/mysql:delegated
       - ./images/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf:ro
 
+  mysql.test:
+    container_name: mysql.test
+    image: registry.mgid.com/marketgid/databases
+    volumes:
+      - /var/lib/mysql
+    networks:
+      default:
+        aliases:
+          - master.mysql.intra
+
   mysql.intra:
     container_name: mysql.intra
     image: mysql:5.7
@@ -450,16 +544,14 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: password
     volumes:
-      - ./data/mysql/mysql:/var/lib/mysql:cached
+      - ./data/mysql/mysql:/var/lib/mysql:delegated
       - ./images/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf:ro
+
 
 volumes:
   portainer_data:
   php-logs:
+  eng-var:
+  informers-cache:
+  informers-tests:
 
-networks:
-  default:
-    external:
-      name: proxy
-  local:
-    driver: bridge
